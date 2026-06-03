@@ -1,0 +1,19 @@
+name: Setup Repo
+description: Prepare repo
+
+inputs:
+  node-version:
+    description: Version of Node to use
+    default: 24.x
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6
+    - name: setup Node
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+    - run: pnpm i --frozen-lockfile
+      shell: bash
