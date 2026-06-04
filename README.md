@@ -41,4 +41,3 @@ const { result, dependencies } = await importer.collect(
 
 - Tracks **relative** imports (`./`, `../`) only; bare packages and Node builtins are ignored.
 - Tracks **statically-imported** dependencies that load while the entry is evaluating. Dependencies imported later (e.g. a deferred dynamic `import()`) are not tracked.
-- Requires Node >= 18.19.0 (for `Module.register`)

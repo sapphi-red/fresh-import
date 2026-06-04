@@ -39,7 +39,7 @@ jobs:
     needs: [build]
     strategy:
       matrix:
-        node_version: [18.x, 24.x]
+        node_version: [20.x, 24.x]
         os: [ubuntu-latest]
         include:
           - node_version: 22.x
@@ -55,8 +55,4 @@ jobs:
         with:
           name: dist
           path: dist
-      - name: downgrade to Vitest 3.x for Node versions unsupported by Vitest 4
-        if: matrix.node_version == '18.x'
-        run: pnpm add -D vitest@^3
-        shell: bash
       - run: pnpm run test
