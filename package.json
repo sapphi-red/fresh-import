@@ -1,6 +1,6 @@
 {
   "name": "fresh-import",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Import an ESM entry in its own fresh module graph (separate from Node's module cache) and get back the statically-imported relative dependency files.",
   "license": "MIT",
   "files": [
