@@ -55,4 +55,8 @@ jobs:
         with:
           name: dist
           path: dist
+      - name: downgrade to Vitest 3.x for Node versions unsupported by Vitest 4
+        if: matrix.node_version == '18.x'
+        run: pnpm add -D vitest@^3
+        shell: bash
       - run: pnpm run test
