@@ -1,5 +1,7 @@
 # fresh-import
 
+[![npm version](https://badge.fury.io/js/fresh-import.svg)](https://badge.fury.io/js/fresh-import) ![CI](https://github.com/sapphi-red/fresh-import/workflows/CI/badge.svg) [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+
 Import an ESM entry in its own fresh module graph, separate from Node's module cache and from other concurrent imports, and get back the statically-imported relative dependency files it pulled in.
 
 > [!NOTE]
