@@ -12,7 +12,6 @@
   },
   "scripts": {
     "build": "tsdown",
-    "pretest": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "oxlint",
