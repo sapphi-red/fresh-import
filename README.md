@@ -2,7 +2,14 @@
 
 Import an ESM entry in its own fresh module graph, separate from Node's module cache and from other concurrent imports, and get back the statically-imported relative dependency files it pulled in.
 
-> Note: this isolates the module graph, not the realm, so imported code still shares process globals. It is not a security sandbox.
+> [!NOTE]
+> This isolates the module graph, not the realm, so imported code still shares process globals. It is not a security sandbox.
+
+## Install
+
+```shell
+pnpm add fresh-import # npm install fresh-import
+```
 
 ## Usage
 
