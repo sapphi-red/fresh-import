@@ -29,9 +29,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "oxlint",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "release:version": "changeset version && pnpm install --no-frozen-lockfile",
+    "release:publish": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
     "@types/node": "^25.9.1",
     "oxfmt": "^0.53.0",
     "oxlint": "^1.68.0",
