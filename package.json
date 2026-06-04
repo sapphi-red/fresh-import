@@ -2,7 +2,20 @@
   "name": "fresh-import",
   "version": "0.0.1",
   "description": "Import an ESM entry in its own fresh module graph (separate from Node's module cache) and get back the statically-imported relative dependency files.",
+  "homepage": "https://github.com/sapphi-red/fresh-import#readme",
+  "bugs": {
+    "url": "https://github.com/sapphi-red/fresh-import/issues"
+  },
   "license": "MIT",
+  "author": "sapphi-red (https://github.com/sapphi-red)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sapphi-red/fresh-import.git"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/sapphi-red"
+  },
   "files": [
     "dist"
   ],
@@ -11,11 +24,12 @@
     ".": "./dist/index.js"
   },
   "scripts": {
+    "dev": "tsdown --watch",
     "build": "tsdown",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "oxlint",
-    "format": "oxfmt ."
+    "format": "oxfmt"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
