@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
-import { inlineLoaderPlugin } from './inline-loader-plugin.ts'
+import { urlLoaderPlugin } from './url-loader-plugin.ts'
 
 export default defineConfig({
-  plugins: [inlineLoaderPlugin()],
+  plugins: [urlLoaderPlugin()],
 })

@@ -1,12 +1,6 @@
 import { Module } from 'node:module'
-import { MessageChannel } from 'node:worker_threads'
-import { fileURLToPath } from 'node:url'
-import loaderSource from './loader.ts?inline'
-
-const loaderUrl = `data:text/javascript,${loaderSource.replace(
-  /[%#?\t\n\r]/g,
-  (c) => `%${c.charCodeAt(0).toString(16).padStart(2, '0').toUpperCase()}`,
-)}`
+import { createOffThreadImporter } from './off-thread/off-thread.ts'
+import { createOnThreadImporter } from './on-thread.ts'
 
 export interface FreshImporterOptions {
   /**
@@ -43,43 +37,18 @@ export function formatTrackingQuery(queryName: string, time: number, context: st
 export function createFreshImporter(options: FreshImporterOptions): FreshImporter | undefined {
   const { queryName } = options
 
-  // `register` only exists in Node.js 18.19.0+, 20.6.0+. Bail out otherwise.
+  // Prefer the synchronous on-thread hooks (Node 22.15+/23.5+): they run on the
+  // main thread, avoiding the worker-thread MessagePort round-trip.
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
-  const register = Module.register
-  if (!register) {
-    return undefined
+  const registerHooks = Module.registerHooks as typeof Module.registerHooks | undefined
+  if (registerHooks) {
+    return createOnThreadImporter(queryName)
   }
-
-  const { port1, port2 } = new MessageChannel()
-  register(loaderUrl, {
-    data: { port: port2, queryName },
-    transferList: [port2],
-  })
-  port1.unref()
-
-  return {
-    async collect(context, importFn) {
-      const depsList = new Set<string>()
-      const onMessage = (e: { context: string; url: string }) => {
-        if (e.context === context) {
-          depsList.add(e.url)
-        }
-      }
-      port1.on('message', onMessage)
-      port1.unref()
-
-      try {
-        const result = await importFn()
-        // The loader posts messages from a separate thread; flush the queue so
-        // every in-flight dependency message is processed before we read it.
-        await new Promise<void>((resolve) => setImmediate(resolve))
-        const dependencies = [...depsList]
-          .filter((url) => url.startsWith('file:'))
-          .map((url) => fileURLToPath(url))
-        return { result, dependencies }
-      } finally {
-        port1.off('message', onMessage)
-      }
-    },
+  // Fall back to the off-thread loader (`Module.register`, Node 18.19+/20.6+).
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins
+  const register = Module.register as typeof Module.register | undefined
+  if (register) {
+    return createOffThreadImporter(queryName)
   }
+  return undefined
 }
