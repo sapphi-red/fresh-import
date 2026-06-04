@@ -1,2 +1,5 @@
 node_modules
 dist
+
+# Test fixtures ship their own node_modules as bare-import resolution targets
+!test/fixtures/**/node_modules/
