@@ -6,9 +6,9 @@ export interface FreshImporterOptions {
   /**
    * Query parameter name used to tag the import graph
    *
-   * @example 't'
+   * @default 't'
    */
-  queryName: string
+  queryName?: string
 }
 
 export interface FreshImporter {
@@ -24,8 +24,8 @@ export interface FreshImporter {
  *
  * Note that this only tracks ESM dependencies that are statically imported (not dynamic imports)
  */
-export function createFreshImporter(options: FreshImporterOptions): FreshImporter | undefined {
-  const { queryName } = options
+export function createFreshImporter(options: FreshImporterOptions = {}): FreshImporter | undefined {
+  const { queryName = 't' } = options
 
   // Prefer the synchronous on-thread hooks (Node 22.15+/23.5+): they run on the
   // main thread, avoiding the worker-thread MessagePort round-trip.
