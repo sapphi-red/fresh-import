@@ -1,16 +1,6 @@
 import { Module } from 'node:module'
 import { describe, expect, test } from 'vitest'
-import { createFreshImporter, formatTrackingQuery } from './index.ts'
-
-describe('formatTrackingQuery', () => {
-  test('builds ?<queryName>=<time>,<context>', () => {
-    expect(formatTrackingQuery('t', 123, 'main')).toBe('?t=123,main')
-  })
-
-  test('honours a custom query name', () => {
-    expect(formatTrackingQuery('v', 999, 'a')).toBe('?v=999,a')
-  })
-})
+import { createFreshImporter } from './index.ts'
 
 describe('createFreshImporter', () => {
   test('returns undefined when neither register API is available', () => {

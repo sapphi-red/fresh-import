@@ -17,7 +17,7 @@ pnpm add fresh-import # npm install fresh-import
 
 ```ts
 import { pathToFileURL } from 'node:url'
-import { createFreshImporter, formatTrackingQuery } from 'fresh-import'
+import { createFreshImporter } from 'fresh-import'
 
 const importer = createFreshImporter({ queryName: 't' })
 if (!importer) {
@@ -26,25 +26,23 @@ if (!importer) {
 
 const entry = '/abs/path/to/entry.js'
 const url = pathToFileURL(entry).href
-const time = Date.now()
 
-const { result, dependencies } = await importer.collect(
-  'main', // context id: any opaque token, used to isolate concurrent imports
-  () => import(url + formatTrackingQuery('t', time, 'main')),
-)
+const { result, dependencies } = await importer.collect(url)
 // result: the imported module namespace
 // dependencies: absolute file paths of every statically-imported relative dep
 ```
 
-## Caller contract
+Pass a `file:` URL string (use `pathToFileURL` to convert an absolute path). Each `collect` call imports the entry in a fresh module graph; concurrent calls stay isolated from one another, and a later call re-evaluates the entry rather than serving a cached module.
 
-`collect` does not build the import for you. You should append the tracking query to the entry URL yourself, in this exact format:
+## queryName
+
+`collect` tags the import graph by appending a tracking query to the specifier internally, in this format:
 
 ```
-?<queryName>=<time>,<context>
+?<queryName>=<id>,<context>
 ```
 
-`formatTrackingQuery(queryName, time, context)` produces exactly this string. The `queryName` you pass to `createFreshImporter` must match the one in the query.
+`queryName` is the query parameter name used for that tag — pick one that won't collide with query params your entry URLs already carry.
 
 ## Behavior & limitations
 

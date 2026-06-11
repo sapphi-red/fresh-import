@@ -1,8 +1,10 @@
 import { Module } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { ResolveHookSync } from 'node:module'
-import { buildQueryRE, trackResolved } from './hook-core.ts'
+import { buildQueryRE, formatTrackingQuery, trackResolved } from './hook-core.ts'
 import type { FreshImporter } from './index.ts'
+
+let nextId = 0
 
 /**
  * On-thread importer: registers synchronous resolution hooks via
@@ -24,11 +26,12 @@ export function createOnThreadImporter(queryName: string): FreshImporter {
   Module.registerHooks({ resolve })
 
   return {
-    async collect(context, importFn) {
+    async collect(specifier: string) {
+      const id = nextId++
       const depsList = new Set<string>()
-      registry.set(context, depsList)
+      registry.set(specifier, depsList)
       try {
-        const result = await importFn()
+        const result = await import(specifier + formatTrackingQuery(queryName, id, specifier))
         // Static deps are resolved synchronously while the entry evaluates, so
         // they are already in `depsList` by the time the import settles.
         const dependencies = [...depsList]
@@ -36,7 +39,7 @@ export function createOnThreadImporter(queryName: string): FreshImporter {
           .map((url) => fileURLToPath(url))
         return { result, dependencies }
       } finally {
-        registry.delete(context)
+        registry.delete(specifier)
       }
     },
   }
