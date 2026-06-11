@@ -7,11 +7,21 @@ function escapeRegExp(value: string): string {
 }
 
 /**
- * Build the regex that matches the tracking query `?<name>=<time>,<context>`
+ * Build the regex that matches the tracking query `?<name>=<id>,<context>`
  * (or the `&<name>=...` form).
  */
 export function buildQueryRE(queryName: string): RegExp {
   return new RegExp(`(?:\\?|&)${escapeRegExp(queryName)}=(\\d+),([^&]+)(?:&|$)`)
+}
+
+/**
+ * Build the tracking query `?<name>=<id>,<context>` that `collect` appends to
+ * the entry specifier. `id` cache-busts the import (a distinct URL forces a
+ * fresh evaluation) and `context` tags the import graph so the resolve hook can
+ * attribute resolved dependencies back to the originating collect.
+ */
+export function formatTrackingQuery(queryName: string, id: number, context: string): string {
+  return `?${queryName}=${id},${context}`
 }
 
 /**
@@ -49,12 +59,12 @@ export function trackResolved(
   // propagate the tracking query from the parent down to this dependency
   const m = queryRE.exec(context.parentURL)
   if (m) {
-    const [, time, contextFile] = m
+    const [, id, contextFile] = m
     onDependency(contextFile, result.url)
     // append the tracking query, preserving any existing query
     result.url = result.url.replace(
       /(\?)|$/,
-      (_n, n1) => `?${queryName}=${time},${contextFile}${n1 === '?' ? '&' : ''}`,
+      (_n, n1) => `?${queryName}=${id},${contextFile}${n1 === '?' ? '&' : ''}`,
     )
   }
   return result

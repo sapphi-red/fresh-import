@@ -12,19 +12,9 @@ export interface FreshImporterOptions {
 }
 
 export interface FreshImporter {
-  collect<T>(
-    context: string,
-    importFn: () => Promise<T>,
-  ): Promise<{ result: T; dependencies: string[] }>
-}
-
-/**
- * Build the entry query the loader expects. The caller appends this to the
- * entry's file URL before importing, e.g.
- * `import(url + formatTrackingQuery(queryName, Date.now(), context))`.
- */
-export function formatTrackingQuery(queryName: string, time: number, context: string): string {
-  return `?${queryName}=${time},${context}`
+  collect(
+    specifier: string,
+  ): Promise<{ result: { [Symbol.toStringTag]: 'Module' }; dependencies: string[] }>
 }
 
 /**

@@ -1,8 +1,11 @@
 import { Module } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { MessageChannel } from 'node:worker_threads'
+import { formatTrackingQuery } from '../hook-core.ts'
 import loaderUrl from './loader.ts?url'
 import type { FreshImporter } from '../index.ts'
+
+let nextId = 0
 
 /**
  * Off-thread importer: registers an ESM loader in a worker thread via
@@ -19,10 +22,11 @@ export function createOffThreadImporter(queryName: string): FreshImporter {
   port1.unref()
 
   return {
-    async collect(context, importFn) {
+    async collect(specifier: string) {
+      const id = nextId++
       const depsList = new Set<string>()
       const onMessage = (e: { context: string; url: string }) => {
-        if (e.context === context) {
+        if (e.context === specifier) {
           depsList.add(e.url)
         }
       }
@@ -30,7 +34,7 @@ export function createOffThreadImporter(queryName: string): FreshImporter {
       port1.unref()
 
       try {
-        const result = await importFn()
+        const result = await import(specifier + formatTrackingQuery(queryName, id, specifier))
         // The loader posts messages from a separate thread; flush the queue so
         // every in-flight dependency message is processed before we read it.
         await new Promise<void>((resolve) => setImmediate(resolve))
