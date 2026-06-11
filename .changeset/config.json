@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "sapphi-red/host-validation-middleware" }
+    { "repo": "sapphi-red/fresh-import" }
   ],
   "commit": false,
   "fixed": [],
