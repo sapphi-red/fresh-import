@@ -13,8 +13,8 @@ describe('relativeImportRE', () => {
 })
 
 describe('buildQueryName', () => {
-  // The build-time hash is only injected into the bundle, so under Vitest the
-  // placeholder survives.
+  // The random instance id is generated once at module load, so the name is
+  // stable across calls within a process.
   test('is prefixed with fresh-import- and stable across calls', () => {
     const name = buildQueryName()
     expect(name).toMatch(/^fresh-import-/)
