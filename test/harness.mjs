@@ -1,15 +1,15 @@
 // Runs inside a clean `node` subprocess (no TS runtime, no Vitest transform).
-// Usage: node harness.mjs <mode> <queryName> <entry> [entry2]
-//   single    <queryName> <entry>            -> { dependencies }
-//   concurrent <queryName> <entryA> <entryB> -> { a, b }
-//   cachebust <queryName> <entry>            -> { deps1, deps2, evalCount }
-//   lazy      <queryName> <entry>            -> { dependencies }
+// Usage: node harness.mjs <mode> <entry> [entry2]
+//   single     <entry>            -> { dependencies }
+//   concurrent <entryA> <entryB>  -> { a, b }
+//   cachebust  <entry>            -> { deps1, deps2, evalCount }
+//   lazy       <entry>            -> { dependencies }
 import { pathToFileURL } from 'node:url'
 import { createFreshImporter } from '../dist/index.js'
 
-const [mode, queryName, ...entries] = process.argv.slice(2)
+const [mode, ...entries] = process.argv.slice(2)
 
-const tracker = createFreshImporter({ queryName })
+const tracker = createFreshImporter()
 if (!tracker) {
   throw new Error('Module.register unavailable in this Node version')
 }

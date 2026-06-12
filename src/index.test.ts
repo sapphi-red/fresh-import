@@ -11,7 +11,7 @@ describe('createFreshImporter', () => {
     // @ts-expect-error simulate an older Node without either API
     Module.registerHooks = undefined
     try {
-      expect(createFreshImporter({ queryName: 't' })).toBeUndefined()
+      expect(createFreshImporter()).toBeUndefined()
     } finally {
       Module.register = originalRegister
       Module.registerHooks = originalRegisterHooks
@@ -30,7 +30,7 @@ describe('createFreshImporter', () => {
       calls.push('register')
     }
     try {
-      expect(createFreshImporter({ queryName: 't' })).toBeDefined()
+      expect(createFreshImporter()).toBeDefined()
       expect(calls).toStrictEqual(['hooks'])
     } finally {
       Module.register = originalRegister
@@ -48,7 +48,7 @@ describe('createFreshImporter', () => {
       calls.push('register')
     }
     try {
-      expect(createFreshImporter({ queryName: 't' })).toBeDefined()
+      expect(createFreshImporter()).toBeDefined()
       expect(calls).toStrictEqual(['register'])
     } finally {
       Module.register = originalRegister

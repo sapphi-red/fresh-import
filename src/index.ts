@@ -2,15 +2,6 @@ import { Module } from 'node:module'
 import { createOffThreadImporter } from './off-thread/off-thread.ts'
 import { createOnThreadImporter } from './on-thread.ts'
 
-export interface FreshImporterOptions {
-  /**
-   * Query parameter name used to tag the import graph
-   *
-   * @default 't'
-   */
-  queryName?: string
-}
-
 export interface FreshImporter {
   collect(
     specifier: string,
@@ -24,21 +15,19 @@ export interface FreshImporter {
  *
  * Note that this only tracks ESM dependencies that are statically imported (not dynamic imports)
  */
-export function createFreshImporter(options: FreshImporterOptions = {}): FreshImporter | undefined {
-  const { queryName = 't' } = options
-
+export function createFreshImporter(): FreshImporter | undefined {
   // Prefer the synchronous on-thread hooks (Node 22.15+/23.5+): they run on the
   // main thread, avoiding the worker-thread MessagePort round-trip.
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const registerHooks = Module.registerHooks as typeof Module.registerHooks | undefined
   if (registerHooks) {
-    return createOnThreadImporter(queryName)
+    return createOnThreadImporter()
   }
   // Fall back to the off-thread loader (`Module.register`, Node 18.19+/20.6+).
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
   const register = Module.register as typeof Module.register | undefined
   if (register) {
-    return createOffThreadImporter(queryName)
+    return createOffThreadImporter()
   }
   return undefined
 }

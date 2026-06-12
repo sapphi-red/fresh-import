@@ -19,7 +19,7 @@ pnpm add fresh-import # npm install fresh-import
 import { pathToFileURL } from 'node:url'
 import { createFreshImporter } from 'fresh-import'
 
-const importer = createFreshImporter({ queryName: 't' })
+const importer = createFreshImporter()
 if (!importer) {
   // Node < 18.19.0 / 20.6.0: Module.register is unavailable
 }
@@ -33,16 +33,6 @@ const { result, dependencies } = await importer.collect(url)
 ```
 
 Pass a `file:` URL string (use `pathToFileURL` to convert an absolute path). Each `collect` call imports the entry in a fresh module graph; concurrent calls stay isolated from one another, and a later call re-evaluates the entry rather than serving a cached module.
-
-## queryName
-
-`collect` tags the import graph by appending a tracking query to the specifier internally, in this format:
-
-```
-?<queryName>=<id>,<context>
-```
-
-`queryName` is the query parameter name used for that tag — pick one that won't collide with query params your entry URLs already carry.
 
 ## Behavior & limitations
 

@@ -1,9 +1,24 @@
 import type { ResolveFnOutput, ResolveHookContext } from 'node:module'
 
+// Replaced at build time by the query-hash plugin with a hash of the output
+// chunk (see query-hash-plugin.ts). Stays as this literal when running the
+// source unbundled (e.g. tests), which is still a stable, valid query name.
+const queryHash = '__FRESH_IMPORT_QUERY_HASH__'
+
 export const relativeImportRE = /^\.{1,2}(?:\/|\\)/
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * The tracking query name `fresh-import-<hash>`, where `<hash>` is a build-time
+ * hash of the output chunk. Distinct implementations (e.g. two different
+ * versions of this package loaded into the same process) get distinct names, so
+ * each hook only recognizes the imports it tagged itself.
+ */
+export function buildQueryName(): string {
+  return `fresh-import-${queryHash}`
 }
 
 /**
