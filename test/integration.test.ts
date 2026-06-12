@@ -38,7 +38,10 @@ describe('deps tracking (native loader)', () => {
   })
 
   test('re-imports (does not serve a cached module) on a new collect', async () => {
-    const { deps1, deps2, evalCount } = await runHarness(['cachebust', fixture('cachebust/entry.js')])
+    const { deps1, deps2, evalCount } = await runHarness([
+      'cachebust',
+      fixture('cachebust/entry.js'),
+    ])
     expect(toRelPaths(deps1)).toStrictEqual(['cachebust/a.js'])
     expect(toRelPaths(deps2)).toStrictEqual(['cachebust/a.js'])
     // distinct time => distinct URL => the entry is evaluated twice
