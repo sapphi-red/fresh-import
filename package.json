@@ -30,7 +30,7 @@
     "test:watch": "vitest",
     "lint": "oxlint",
     "format": "oxfmt",
-    "release:version": "changeset version && pnpm install --no-frozen-lockfile",
+    "release:version": "changeset version && pnpm install --no-frozen-lockfile && pnpm run format",
     "release:publish": "changeset publish"
   },
   "devDependencies": {
