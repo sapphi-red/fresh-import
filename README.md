@@ -17,22 +17,22 @@ pnpm add fresh-import # npm install fresh-import
 
 ```ts
 import { pathToFileURL } from 'node:url'
-import { createFreshImporter } from 'fresh-import'
-
-const importer = createFreshImporter()
-if (!importer) {
-  // Node < 18.19.0 / 20.6.0: Module.register is unavailable
-}
+import { freshImport } from 'fresh-import'
 
 const entry = '/abs/path/to/entry.js'
 const url = pathToFileURL(entry).href
 
-const { result, dependencies } = await importer.collect(url)
-// result: the imported module namespace
-// dependencies: absolute file paths of every statically-imported relative dep
+const imported = freshImport(url)
+if (imported) {
+  const { result, dependencies } = await imported
+  // result: the imported module namespace
+  // dependencies: absolute file paths of every statically-imported relative dep
+}
 ```
 
-Pass a `file:` URL string (use `pathToFileURL` to convert an absolute path). Each `collect` call imports the entry in a fresh module graph; concurrent calls stay isolated from one another, and a later call re-evaluates the entry rather than serving a cached module.
+Pass a `file:` URL string (use `pathToFileURL` to convert an absolute path). Each `freshImport` call imports the entry in a fresh module graph; concurrent calls stay isolated from one another, and a later call re-evaluates the entry rather than serving a cached module. The underlying importer (and its resolution hook) is created once on first use and reused across calls.
+
+`freshImport` uses `Module.registerHooks` (Node 22.15+/23.5+) when available and otherwise `Module.register` (Node 20.6+). On runtimes that provide neither, it returns `undefined` so you can fall back.
 
 ## Behavior & limitations
 

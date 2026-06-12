@@ -1,33 +1,34 @@
-import { Module } from 'node:module'
-import { createOffThreadImporter } from './off-thread/off-thread.ts'
-import { createOnThreadImporter } from './on-thread.ts'
+import { createImporter, type FreshImporter } from './create-importer.ts'
 
-export interface FreshImporter {
-  collect(
-    specifier: string,
-  ): Promise<{ result: { [Symbol.toStringTag]: 'Module' }; dependencies: string[] }>
+export interface FreshImportResult {
+  /** The imported module namespace. */
+  result: { [Symbol.toStringTag]: 'Module' }
+  /** Absolute file paths of every statically-imported relative dependency. */
+  dependencies: string[]
 }
 
+// Creating the importer registers a resolution hook, so create it once on first
+// use and reuse it across calls. `initialized` lets us memoize even an
+// `undefined` (unsupported-runtime) result instead of re-probing every call.
+let importer: FreshImporter | undefined
+let initialized = false
+
 /**
- * Create a fresh importer that imports an ESM entry in its own module graph
- * (separate from Node's module cache and from other concurrent imports) and
- * reports the dependency files it pulled in.
+ * Import an ESM entry in its own fresh module graph (separate from Node's module
+ * cache and from other concurrent imports) and report the dependency files it
+ * pulled in.
  *
- * Note that this only tracks ESM dependencies that are statically imported (not dynamic imports)
+ * Each call re-evaluates the entry in a fresh graph; concurrent calls stay
+ * isolated from one another. Only statically-imported relative dependencies are
+ * tracked, not dynamic imports.
+ *
+ * Returns `undefined` on runtimes that provide neither `Module.registerHooks`
+ * nor `Module.register`.
  */
-export function createFreshImporter(): FreshImporter | undefined {
-  // Prefer the synchronous on-thread hooks (Node 22.15+/23.5+): they run on the
-  // main thread, avoiding the worker-thread MessagePort round-trip.
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins
-  const registerHooks = Module.registerHooks as typeof Module.registerHooks | undefined
-  if (registerHooks) {
-    return createOnThreadImporter()
+export function freshImport(specifier: string): Promise<FreshImportResult> | undefined {
+  if (!initialized) {
+    importer = createImporter()
+    initialized = true
   }
-  // Fall back to the off-thread loader (`Module.register`, Node 18.19+/20.6+).
-  // eslint-disable-next-line n/no-unsupported-features/node-builtins
-  const register = Module.register as typeof Module.register | undefined
-  if (register) {
-    return createOffThreadImporter()
-  }
-  return undefined
+  return importer?.collect(specifier)
 }

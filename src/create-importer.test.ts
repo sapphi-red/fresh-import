@@ -1,17 +1,17 @@
 import { Module } from 'node:module'
 import { describe, expect, test } from 'vitest'
-import { createFreshImporter } from './index.ts'
+import { createImporter } from './create-importer.ts'
 
-describe('createFreshImporter', () => {
+describe('createImporter', () => {
   test('returns undefined when neither register API is available', () => {
     const originalRegister = Module.register
     const originalRegisterHooks = Module.registerHooks
-    // @ts-expect-error simulate an older Node without either API
+    // @ts-expect-error simulate a runtime without either API
     Module.register = undefined
-    // @ts-expect-error simulate an older Node without either API
+    // @ts-expect-error simulate a runtime without either API
     Module.registerHooks = undefined
     try {
-      expect(createFreshImporter()).toBeUndefined()
+      expect(createImporter()).toBeUndefined()
     } finally {
       Module.register = originalRegister
       Module.registerHooks = originalRegisterHooks
@@ -30,7 +30,7 @@ describe('createFreshImporter', () => {
       calls.push('register')
     }
     try {
-      expect(createFreshImporter()).toBeDefined()
+      expect(createImporter()).toBeDefined()
       expect(calls).toStrictEqual(['hooks'])
     } finally {
       Module.register = originalRegister
@@ -48,7 +48,7 @@ describe('createFreshImporter', () => {
       calls.push('register')
     }
     try {
-      expect(createFreshImporter()).toBeDefined()
+      expect(createImporter()).toBeDefined()
       expect(calls).toStrictEqual(['register'])
     } finally {
       Module.register = originalRegister

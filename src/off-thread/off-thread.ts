@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { MessageChannel } from 'node:worker_threads'
 import { buildQueryName, formatTrackingQuery } from '../hook-core.ts'
 import loaderUrl from './loader.ts?url'
-import type { FreshImporter } from '../index.ts'
+import type { FreshImporter } from '../create-importer.ts'
 
 let nextId = 0
 

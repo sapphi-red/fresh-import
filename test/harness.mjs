@@ -5,17 +5,12 @@
 //   cachebust  <entry>            -> { deps1, deps2, evalCount }
 //   lazy       <entry>            -> { dependencies }
 import { pathToFileURL } from 'node:url'
-import { createFreshImporter } from '../dist/index.js'
+import { freshImport } from '../dist/index.js'
 
 const [mode, ...entries] = process.argv.slice(2)
 
-const tracker = createFreshImporter()
-if (!tracker) {
-  throw new Error('Module.register unavailable in this Node version')
-}
-
 async function collect(entry) {
-  const { dependencies } = await tracker.collect(pathToFileURL(entry).href)
+  const { dependencies } = await freshImport(pathToFileURL(entry).href)
   return dependencies
 }
 

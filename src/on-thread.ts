@@ -2,7 +2,7 @@ import { Module } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { ResolveHookSync } from 'node:module'
 import { buildQueryName, buildQueryRE, formatTrackingQuery, trackResolved } from './hook-core.ts'
-import type { FreshImporter } from './index.ts'
+import type { FreshImporter } from './create-importer.ts'
 
 let nextId = 0
 
