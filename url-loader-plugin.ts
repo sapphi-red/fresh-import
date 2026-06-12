@@ -35,6 +35,7 @@ export function urlLoaderPlugin() {
         const { output } = await build({
           input: file,
           write: false,
+          platform: 'node',
           output: { format: 'esm' },
         })
         const { code } = output[0]

@@ -1,9 +1,9 @@
 import { Module } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { MessageChannel } from 'node:worker_threads'
-import { formatTrackingQuery } from '../hook-core.ts'
+import { buildQueryName, formatTrackingQuery } from '../hook-core.ts'
 import loaderUrl from './loader.ts?url'
-import type { FreshImporter } from '../index.ts'
+import type { FreshImporter } from '../create-importer.ts'
 
 let nextId = 0
 
@@ -12,7 +12,8 @@ let nextId = 0
  * `Module.register` and receives tracked dependencies over a `MessagePort`.
  * Used on Node versions without `Module.registerHooks`.
  */
-export function createOffThreadImporter(queryName: string): FreshImporter {
+export function createOffThreadImporter(): FreshImporter {
+  const queryName = buildQueryName()
   const { port1, port2 } = new MessageChannel()
   // eslint-disable-next-line n/no-unsupported-features/node-builtins
   Module.register(loaderUrl, {

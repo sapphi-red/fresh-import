@@ -1,8 +1,8 @@
 import { Module } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { ResolveHookSync } from 'node:module'
-import { buildQueryRE, formatTrackingQuery, trackResolved } from './hook-core.ts'
-import type { FreshImporter } from './index.ts'
+import { buildQueryName, buildQueryRE, formatTrackingQuery, trackResolved } from './hook-core.ts'
+import type { FreshImporter } from './create-importer.ts'
 
 let nextId = 0
 
@@ -10,10 +10,11 @@ let nextId = 0
  * On-thread importer: registers synchronous resolution hooks via
  * `Module.registerHooks` (Node 22.15+/23.5+).
  */
-export function createOnThreadImporter(queryName: string): FreshImporter {
-  const queryRE = buildQueryRE(queryName)
+export function createOnThreadImporter(): FreshImporter {
   // Active collects, keyed by context id. The resolve hook writes into these.
   const registry = new Map<string, Set<string>>()
+  const queryName = buildQueryName()
+  const queryRE = buildQueryRE(queryName)
 
   const resolve: ResolveHookSync = (specifier, context, nextResolve) => {
     const result = nextResolve(specifier, context)

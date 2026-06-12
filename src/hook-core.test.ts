@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { formatTrackingQuery, relativeImportRE } from './hook-core.ts'
+import { buildQueryName, formatTrackingQuery, relativeImportRE } from './hook-core.ts'
 
 describe('relativeImportRE', () => {
   test('matches ./ and ../ (posix and windows), rejects bare/builtin', () => {
@@ -12,12 +12,20 @@ describe('relativeImportRE', () => {
   })
 })
 
+describe('buildQueryName', () => {
+  // The build-time hash is only injected into the bundle, so under Vitest the
+  // placeholder survives.
+  test('is prefixed with fresh-import- and stable across calls', () => {
+    const name = buildQueryName()
+    expect(name).toMatch(/^fresh-import-/)
+    expect(buildQueryName()).toBe(name)
+  })
+})
+
 describe('formatTrackingQuery', () => {
   test('builds ?<queryName>=<time>,<context>', () => {
-    expect(formatTrackingQuery('t', 123, 'main')).toBe('?t=123,main')
-  })
-
-  test('honours a custom query name', () => {
-    expect(formatTrackingQuery('v', 999, 'a')).toBe('?v=999,a')
+    expect(formatTrackingQuery('fresh-import-abcd1234', 123, 'main')).toBe(
+      '?fresh-import-abcd1234=123,main',
+    )
   })
 })
