@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/fresh-import.svg)](https://badge.fury.io/js/fresh-import) ![CI](https://github.com/sapphi-red/fresh-import/workflows/CI/badge.svg) [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-Import an ESM entry in its own fresh module graph, separate from Node's module cache and from other concurrent imports, and get back the statically-imported relative dependency files it pulled in.
+Import an ESM entry in its own fresh module graph, separate from Node's module cache and from other concurrent imports, and get back the statically-imported relative and local package dependency files it pulled in.
 
 > [!NOTE]
 > This isolates the module graph, not the realm, so imported code still shares process globals. It is not a security sandbox.
@@ -26,7 +26,7 @@ const imported = freshImport(url)
 if (imported) {
   const { result, dependencies } = await imported
   // result: the imported module namespace
-  // dependencies: absolute file paths of every statically-imported relative dep
+  // dependencies: absolute file paths of statically-imported relative and local package deps
 }
 ```
 
@@ -36,5 +36,7 @@ Pass a `file:` URL string (use `pathToFileURL` to convert an absolute path). Eac
 
 ## Behavior & limitations
 
-- Tracks **relative** imports (`./`, `../`) only; bare packages and Node builtins are ignored.
+- Tracks **relative** imports (`./`, `../`) and other file imports whose resolved paths are outside `node_modules`, including linked workspace packages. These tracked modules are re-evaluated on each call.
+- Bare packages resolving inside `node_modules` and Node builtins are not tracked and remain in Node's shared module cache.
+- Workspace package detection relies on Node resolving symlinks to their real paths (the default). With `--preserve-symlinks`, packages resolving inside `node_modules` are not tracked.
 - Tracks **statically-imported** dependencies that load while the entry is evaluating. Dependencies imported later (e.g. a deferred dynamic `import()`) are not tracked.

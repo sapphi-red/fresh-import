@@ -4,10 +4,16 @@
 //   concurrent <entryA> <entryB>  -> { a, b }
 //   cachebust  <entry>            -> { deps1, deps2, evalCount }
 //   lazy       <entry>            -> { dependencies }
+// Append -off-thread to a mode to force the Module.register fallback.
+import { Module } from 'node:module'
 import { pathToFileURL } from 'node:url'
 import { freshImport } from '../dist/index.js'
 
-const [mode, ...entries] = process.argv.slice(2)
+const [requestedMode, ...entries] = process.argv.slice(2)
+const mode = requestedMode.replace(/-off-thread$/, '')
+if (requestedMode.endsWith('-off-thread')) {
+  Module.registerHooks = undefined
+}
 
 async function collect(entry) {
   const { dependencies } = await freshImport(pathToFileURL(entry).href)
