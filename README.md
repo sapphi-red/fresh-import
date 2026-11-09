@@ -36,7 +36,8 @@ Pass a `file:` URL string (use `pathToFileURL` to convert an absolute path). Eac
 
 ## Behavior & limitations
 
-- Tracks **relative** imports (`./`, `../`) and other file imports whose resolved paths are outside `node_modules`, including linked workspace packages. These tracked modules are re-evaluated on each call.
-- Bare packages resolving inside `node_modules` and Node builtins are not tracked and remain in Node's shared module cache.
+- Tracks **relative** imports (`./`, `../`) and other file imports whose resolved paths are outside `node_modules`, including linked workspace packages. Tracked **ESM** modules are re-evaluated on each call.
+- Bare packages resolving inside `node_modules` and Node builtins are not tracked and remain in Node's shared module cache. Tracking does not continue through these untracked modules: for example, `entry → installed preset → linked workspace package` leaves the workspace package untracked and cached too.
+- CommonJS dependencies can be reported in `dependencies`, but are not re-evaluated on subsequent calls: tracking queries do not invalidate Node's CommonJS cache. This applies to both relative imports and linked packages.
 - Workspace package detection relies on Node resolving symlinks to their real paths (the default). With `--preserve-symlinks`, packages resolving inside `node_modules` are not tracked.
 - Tracks **statically-imported** dependencies that load while the entry is evaluating. Dependencies imported later (e.g. a deferred dynamic `import()`) are not tracked.
