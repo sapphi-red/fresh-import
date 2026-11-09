@@ -1,4 +1,5 @@
 import type { ResolveFnOutput, ResolveHookContext } from 'node:module'
+import { fileURLToPath } from 'node:url'
 
 // A random value generated once per loaded module instance. Two copies of this
 // package loaded into one process (e.g. Vite bundles `fresh-import` while
@@ -45,8 +46,8 @@ export function formatTrackingQuery(queryName: string, id: number, context: stri
 /**
  * Shared body of the resolve hook for both the on-thread and off-thread
  * importers. Given an already-resolved `result`, decides whether it is a tracked
- * relative file dependency; if so, reports it via `onDependency` and tags the
- * URL so the query propagates to its own dependencies.
+ * relative or local package dependency; if so, reports it via `onDependency`
+ * and tags the URL so the query propagates to its own dependencies.
  *
  * The sync/async difference between the two hooks lives entirely in the caller
  * (which awaits `nextResolve` or not); this function performs no I/O. `result`
@@ -60,16 +61,24 @@ export function trackResolved(
   queryRE: RegExp,
   onDependency: (context: string, url: string) => void,
 ): ResolveFnOutput {
-  const isRelativeImport = relativeImportRE.test(specifier)
-  if (result.format === 'builtin' || !isRelativeImport) return result
-
   if (
+    result.format === 'builtin' ||
     // parent has no URL: this is not a dependency of the tracked entry
     !context.parentURL ||
     // already tagged: nothing to do
     queryRE.test(result.url) ||
     // only file URLs become reported dependencies
     !result.url.startsWith('file:')
+  ) {
+    return result
+  }
+
+  // Node resolves workspace symlinks to their real paths by default. Track
+  // those local files too, but leave installed packages in Node's shared cache.
+  // Preserve the existing behavior for relative imports, even in node_modules.
+  if (
+    !relativeImportRE.test(specifier) &&
+    /[/\\]node_modules[/\\]/.test(fileURLToPath(result.url))
   ) {
     return result
   }

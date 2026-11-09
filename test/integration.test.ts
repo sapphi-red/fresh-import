@@ -1,4 +1,7 @@
-import { describe, expect, test } from 'vitest'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { describe, expect, onTestFinished, test } from 'vitest'
 import { fixture, runHarness, toRelPaths } from './helpers.ts'
 
 describe('deps tracking (native loader)', () => {
@@ -16,10 +19,45 @@ describe('deps tracking (native loader)', () => {
     ])
   })
 
-  test('ignores builtin and bare-package imports, tracks only relative files', async () => {
+  test('ignores builtins and installed packages, tracks relative files', async () => {
     const { dependencies } = await runHarness(['single', fixture('ignores/entry.js')])
     expect(toRelPaths(dependencies)).toStrictEqual(['ignores/local.js'])
   })
+
+  test.each(['cachebust', 'cachebust-off-thread'])(
+    'tracks and re-evaluates a symlinked local package (%s)',
+    async (mode) => {
+      const root = fs.realpathSync(
+        fs.mkdtempSync(path.join(os.tmpdir(), 'fresh-import-workspace-')),
+      )
+      onTestFinished(() => fs.rmSync(root, { recursive: true, force: true }))
+      const packageDir = path.join(root, 'utils')
+      const nodeModules = path.join(root, 'app', 'node_modules')
+      fs.mkdirSync(packageDir)
+      fs.mkdirSync(nodeModules, { recursive: true })
+      fs.writeFileSync(
+        path.join(packageDir, 'package.json'),
+        JSON.stringify({ name: 'utils', type: 'module', exports: './index.js' }),
+      )
+      fs.writeFileSync(path.join(packageDir, 'index.js'), "export * from './nested.js'\n")
+      fs.writeFileSync(
+        path.join(packageDir, 'nested.js'),
+        'globalThis.__depsTrackEvalCount = (globalThis.__depsTrackEvalCount ?? 0) + 1\n',
+      )
+      fs.symlinkSync(packageDir, path.join(nodeModules, 'utils'), 'junction')
+      const entry = path.join(root, 'app', 'entry.mjs')
+      fs.writeFileSync(entry, "import 'utils'\n")
+
+      const { deps1, deps2, evalCount } = await runHarness([mode, entry])
+      const expected = [
+        path.join(packageDir, 'index.js'),
+        path.join(packageDir, 'nested.js'),
+      ].sort()
+      expect(deps1.sort()).toEqual(expected)
+      expect(deps2.sort()).toEqual(expected)
+      expect(evalCount).toBe(2)
+    },
+  )
 
   test('deduplicates a diamond dependency', async () => {
     const { dependencies } = await runHarness(['single', fixture('diamond/entry.js')])

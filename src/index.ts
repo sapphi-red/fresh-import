@@ -3,7 +3,7 @@ import { createImporter, type FreshImporter } from './create-importer.ts'
 export interface FreshImportResult {
   /** The imported module namespace. */
   result: { [Symbol.toStringTag]: 'Module' }
-  /** Absolute file paths of every statically-imported relative dependency. */
+  /** Absolute file paths of statically-imported relative and local package dependencies. */
   dependencies: string[]
 }
 
@@ -19,8 +19,10 @@ let initialized = false
  * pulled in.
  *
  * Each call re-evaluates the entry in a fresh graph; concurrent calls stay
- * isolated from one another. Only statically-imported relative dependencies are
- * tracked, not dynamic imports.
+ * isolated from one another. Statically-imported relative dependencies and local
+ * packages resolving outside node_modules are tracked, not dynamic imports.
+ * CommonJS dependencies are not re-evaluated, and tracking does not continue
+ * through untracked packages in node_modules.
  *
  * Returns `undefined` on runtimes that provide neither `Module.registerHooks`
  * nor `Module.register`.
